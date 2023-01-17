@@ -5,8 +5,8 @@
 
   Program: XY-MD02 Transmitter and broadcast publicly all received data 
 *********/
-#include <Arduino.h>
-#include <SoftwareSerial.h>
+// #include <Arduino.h>
+// #include <SoftwareSerial.h>
 #include <Wire.h>
 #include <WiFi.h>
 // MQTT Broker
@@ -21,11 +21,11 @@ const char server[]   = "yourserverMQTTIP";    // replace with your MQTT Broker
 
 WiFiClient net;
 MQTTClient client;
-//
-//#include <Servo.h>
-//
-//static const int ESC_pin[2] = {9, 10};
-//Servo ESC[2]; 
+
+#include <Servo.h>
+
+static const int ESC_pin[2] = {9, 10};
+Servo ESC[2]; 
 
 // time constants
 unsigned long lastMillis = 0;
@@ -60,13 +60,14 @@ void setup() {
   // STEP 1: initialize Serial Monitor
   Serial.begin(115200);
   // STEP 2 - Initialize Servo elements
-//  for(int i = 0; i < 2; ++i) {
-//        if(!ESC[i].attach(ESC_pin[i])) {
-//            Serial.print("Servo ");
-//            Serial.print(i);
-//            Serial.println("attach error");
-//        }
-//    }
+ for(int i = 0; i < 2; ++i) {
+       if(!ESC[i].attach(ESC_pin[i], 1000, 2000)) {
+           Serial.print("Servo ");
+           Serial.print(i);
+           Serial.println("attach error");
+       }
+   }
+  delay(2000);
   // STEP 3 - Initialize WiFi connectivity
   initWiFi();
   client.begin(server, net);
@@ -81,6 +82,7 @@ void loop() {
  WiFiCheckConnect();
  //check MQTT connection
   checkConnect();
+  delay(200);
 }
 //-----------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////
@@ -123,7 +125,7 @@ void messageReceived(String &topic, String &payload) {
     String PWM_2  = payload.substring(payload.indexOf(",")+1);
     int PWM2 = PWM_2.toInt();
     Serial.println("PWM 1: " + String(PWM1) + ", PWM 2: " + String(PWM2));
-//    ESC[0].write(PWM1); ESC[1].write(PWM2);
+   ESC[0].write(PWM1); ESC[1].write(PWM2);
   }
 }
 ////////////////////////////////////////////////////////////////////
