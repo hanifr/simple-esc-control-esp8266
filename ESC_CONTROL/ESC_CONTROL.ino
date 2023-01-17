@@ -14,10 +14,10 @@
 #define sub1 "TRX/design/IO"
 #define sub2 "TRX/design/req"
 #define sub3 "TRX/design/res"
-const char ssid[]     = "SEA-IC";              // replace with your WiFi SSID
-const char password[] = "seaic2022";           // replace with your WiFi password
-const char clientId[] = "RX-1";                // replace with your MQTT Client Id
-const char server[]   = "txio.uitm.edu.my";    // replace with your MQTT Broker
+const char ssid[]     = "XXXXXX";              // replace with your WiFi SSID
+const char password[] = "XXXXXXXXX";           // replace with your WiFi password
+const char clientId[] = "XXXX";                // replace with your MQTT Client Id
+const char server[]   = "yourserverMQTTIP";    // replace with your MQTT Broker
 
 WiFiClient net;
 MQTTClient client;
