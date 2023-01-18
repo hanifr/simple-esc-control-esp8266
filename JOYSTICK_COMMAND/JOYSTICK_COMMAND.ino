@@ -3,7 +3,7 @@
   SEA-IC, UiTM Shah Alam
   Please report if there is any bugs in the program :: tronexia@gmail.com
 
-  Program: ESP8266 receiver and command two ESCs 
+  Program: ESP8266 transmitter for acquire joystick signal in PWM
 *********/
 // #include <Arduino.h>
 // #include <SoftwareSerial.h>
@@ -22,17 +22,15 @@ const char server[]   = "yourserverMQTTIP";    // replace with your MQTT Broker
 WiFiClient net;
 MQTTClient client;
 
-#include <Servo.h>
-
-static const int ESC_pin[2] = {2, 14};
-Servo ESC[2]; 
+// joystick signal value
+int JSTICK, SPEED;
 
 // time constants
-unsigned long lastMillis = 0;
+// unsigned long lastMillis = 0;
 
 
 unsigned long previousMillis = 0;
-unsigned long interval = 30000;
+// unsigned long interval = 30000;
 
 void initWiFi() {
   WiFi.mode(WIFI_STA);
@@ -59,21 +57,11 @@ void WiFiCheckConnect(){
 void setup() {
   // STEP 1: initialize Serial Monitor
   Serial.begin(115200);
-  // STEP 2 - Initialize Servo elements
- for(int i = 0; i < 2; ++i) {
-       if(!ESC[i].attach(ESC_pin[i], 1000, 2000)) {
-           Serial.print("Servo ");
-           Serial.print(i);
-           Serial.println("attach error");
-       }
-   }
-  delay(2000);
-  // STEP 3 - Initialize WiFi connectivity
+  // STEP 2 - Initialize WiFi connectivity
   initWiFi();
   client.begin(server, net);
-  client.onMessage(messageReceived);
-
-  // STEP 4 - Connecting to WiFi and MQTT broker
+//   client.onMessage(messageReceived);
+  // STEP 3 - Connecting to WiFi and MQTT broker
   connect();
 }
 
@@ -82,6 +70,11 @@ void loop() {
  WiFiCheckConnect();
  //check MQTT connection
   checkConnect();
+// Read Analog value
+  JSTICK = analogRead(A0);
+  JSTICK = constrain(JSTICK, 0, 1023);
+  SPEED = map(JSTICK, 0, 1023, 1100, 1900);
+  client.publish(sub1, String(SPEED));
   delay(200);
 }
 //-----------------------------------------------------------------------------------
@@ -105,28 +98,6 @@ void connect() {
 
  // client.subscribe(topic);
  client.subscribe(sub1);
-}
-////////////////////////////////////////////////////////////////////
-void messageReceived(String &topic, String &payload) {
-//Serial.println("incoming: " + topic + " - " + payload); 
-  Serial.println("Topic: " +  topic);
-  Serial.println("Payload: " +  payload);
-  // Note: Do not use the client in the callback to publish, subscribe or
-  // unsubscribe as it may cause deadlocks when other things arrive while
-  // sending and receiving acknowledgments. Instead, change a global variable,
-  // or push to a queue and handle it in the loop after calling `client.loop()`.
-  String sensorType = topic;
-
-  if (sensorType == sub1)
-  {
-    String PWM_1  = payload.substring(0,payload.indexOf(","));
-    int PWM1 = PWM_1.toInt();
-    // String PWM_2  = payload.substring(payload.indexOf(",")+1);
-    // int PWM2 = PWM_2.toInt();
-    // Serial.println("PWM 1: " + String(PWM1) + ", PWM 2: " + String(PWM2));
-   Serial.println("PWM 1: " + String(PWM1));
-   ESC[0].write(PWM1); ESC[1].write(PWM1);
-  }
 }
 ////////////////////////////////////////////////////////////////////
 void checkConnect(){
