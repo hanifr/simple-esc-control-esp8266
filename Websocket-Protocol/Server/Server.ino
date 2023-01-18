@@ -3,7 +3,7 @@
 
   This sketch:
         1. Connects to a WiFi network
-        2. Starts a websocket server on port 80
+        2. Starts a websocket server on port 8888
         3. Waits for connections
         4. Once a client connects, it wait for a message from the client
         5. Sends an "echo" message to the client
@@ -19,6 +19,7 @@
 
 #include <ArduinoWebsockets.h>
 #include <WiFi.h>
+// #include <ESP8266WiFi.h>
 
 const char* ssid = "ssid"; //Enter SSID
 const char* password = "password"; //Enter Password
@@ -26,6 +27,8 @@ const char* password = "password"; //Enter Password
 using namespace websockets;
 
 WebsocketsServer server;
+
+int JSTICK;
 void setup() {
   Serial.begin(115200);
   // Connect to wifi
@@ -42,7 +45,7 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());   //You can get IP address assigned to ESP
 
-  server.listen(80);
+  server.listen(8888);
   Serial.print("Is server live? ");
   Serial.println(server.available());
 }
@@ -50,17 +53,18 @@ void setup() {
 void loop() {
   WebsocketsClient client = server.accept();
   if(client.available()) {
-    WebsocketsMessage msg = client.readBlocking();
-
+    // WebsocketsMessage msg = client.readBlocking();
+    WebsocketsMessage msg = client.readNonBlocking();
+    JSTICK = analogRead(A0);
     // log
     Serial.print("Got Message: ");
     Serial.println(msg.data());
-
+    client.send(String(JSTICK));
     // return echo
-    client.send("Echo: " + msg.data());
+    // client.send("Echo: " + msg.data());
 
     // close the connection
-    client.close();
+    // client.close();
   }
   
   delay(1000);

@@ -1,34 +1,35 @@
 /*
 	Esp32 Websockets Client
-
-	This sketch:
-        1. Connects to a WiFi network
-        2. Connects to a Websockets server
-        3. Sends the websockets server a message ("Hello Server")
-        4. Prints all incoming messages while the connection is open
-
-	Hardware:
-        For this sketch you only need an ESP32 board.
-
-	Created 15/02/2019
-	By Gil Maimon
-	https://github.com/gilmaimon/ArduinoWebsockets
-
 */
 
 #include <ArduinoWebsockets.h>
 #include <WiFi.h>
+// #include <ESP8266WiFi.h>
+#include <Servo.h>
 
 const char* ssid = "ssid"; //Enter SSID
 const char* password = "password"; //Enter Password
 const char* websockets_server_host = "serverip_or_name"; //Enter server adress
-const uint16_t websockets_server_port = 8080; // Enter server port
+const uint16_t websockets_server_port = 8888; // Enter server port
 
 using namespace websockets;
+int PWM;
+int* ref_PWM;
+float PWM_CMD;
+static const int ESC_pin[2] = {2, 14};
+Servo ESC[2]; 
 
 WebsocketsClient client;
 void setup() {
     Serial.begin(115200);
+    for(int i = 0; i < 2; ++i) {
+       if(!ESC[i].attach(ESC_pin[i], 1000, 2000)) {
+           Serial.print("Servo ");
+           Serial.print(i);
+           Serial.println("attach error");
+       }
+    }
+    delay(2000);
     // Connect to wifi
     WiFi.begin(ssid, password);
 
@@ -46,25 +47,86 @@ void setup() {
 
     Serial.println("Connected to Wifi, Connecting to server.");
     // try to connect to Websockets server
-    bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-    if(connected) {
-        Serial.println("Connected!");
-        client.send("Hello Server");
-    } else {
-        Serial.println("Not Connected!");
+    connectWebsocket();
+}
+void onMessageCallback(WebsocketsMessage message) {
+    // const char* msg = (message.data()).toInt();
+    PWM = (message.data()).toInt();;
+    // int x = atoi(myData);
+}
+
+void onEventsCallback(WebsocketsEvent event, String data) {
+    if(event == WebsocketsEvent::ConnectionOpened) {
+        Serial.println("Connnection Opened");
+        wsConnected = true;
+    } else if(event == WebsocketsEvent::ConnectionClosed) {
+        Serial.println("Connnection Closed");
+        wsConnected = false;
+    } else if(event == WebsocketsEvent::GotPing) {
+        Serial.println("Got a Ping!");
+    } else if(event == WebsocketsEvent::GotPong) {
+        Serial.println("Got a Pong!");
     }
-    
-    // run callback when messages are received
-    client.onMessage([&](WebsocketsMessage message){
-        Serial.print("Got Message: ");
-        Serial.println(message.data());
-    });
+}
+
+void connectWebsocket(){
+  // Connect to server
+  client.connect(websockets_server_host, websockets_server_port, "/");
+
+  Serial.println("Connected to Wifi, Connecting to server.");
+  // try to connect to Websockets server
+  bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+  if(connected) {
+      Serial.println("Connected!");
+        PWM = 0;
+  } else {
+      Serial.println("Not Connected!");
+  }
+
+  // Setup Callbacks
+  client.onMessage(onMessageCallback);
+  client.onEvent(onEventsCallback);
+}
+
+bool pollWebsocket(){
+  if (client.available()){
+    client.poll(); // Get ready to receive next message
+    return true;  
+  }
+  else{
+    return false;
+  }
+}
+
+int* getControlReference(){
+  return PWM;
+}
+void readJoystick() {
+  ref_PWM = getControlReference();
+
+  PWM_CMD = map(ref_PWM, 0, 1023, 1100, 1900);
+}
+
+void updateMotor(){
+    ESC[0].writeMicroseconds(PWM_CMD);
+    ESC[1].writeMicroseconds(PWM_CMD);
 }
 
 void loop() {
-    // let the websockets client check for incoming messages
-    if(client.available()) {
-        client.poll();
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    if (pollWebsocket()) {
+      readJoystick();
+
+
     }
-    delay(500);
+    else {
+      connectWebsocket();
+    }
+  }
+  else {
+    connectWifi();
+    connectWebsocket();
+  }
+  updateMotor();
 }

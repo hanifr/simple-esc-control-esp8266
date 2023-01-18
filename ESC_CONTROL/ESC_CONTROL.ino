@@ -26,7 +26,7 @@ MQTTClient client;
 
 static const int ESC_pin[2] = {2, 14};
 Servo ESC[2]; 
-
+int PWM_CMD, PWM;
 // time constants
 unsigned long lastMillis = 0;
 
@@ -76,14 +76,6 @@ void setup() {
   // STEP 4 - Connecting to WiFi and MQTT broker
   connect();
 }
-
-void loop() {
- //check WiFi Connection
- WiFiCheckConnect();
- //check MQTT connection
-  checkConnect();
-  delay(200);
-}
 //-----------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////
 // Sub-function to connect to WiFi and MQTT broker
@@ -120,12 +112,11 @@ void messageReceived(String &topic, String &payload) {
   if (sensorType == sub1)
   {
     String PWM_1  = payload.substring(0,payload.indexOf(","));
-    int PWM1 = PWM_1.toInt();
+    PWM = PWM_1.toInt();
     // String PWM_2  = payload.substring(payload.indexOf(",")+1);
     // int PWM2 = PWM_2.toInt();
     // Serial.println("PWM 1: " + String(PWM1) + ", PWM 2: " + String(PWM2));
-   Serial.println("PWM 1: " + String(PWM1));
-   ESC[0].write(PWM1); ESC[1].write(PWM1);
+   Serial.println("PWM 1: " + String(PWM));
   }
 }
 ////////////////////////////////////////////////////////////////////
@@ -137,3 +128,33 @@ void checkConnect(){
   }
 }
 //-------------------------------------------------//
+int* getControlReference(){
+  return PWM;
+}
+void readJoystick() {
+  ref_PWM = getControlReference();
+
+  PWM_CMD = map(ref_PWM, 0, 1023, 1100, 1900);
+}
+void updateMotor(){
+    ESC[0].writeMicroseconds(PWM_CMD);
+    ESC[1].writeMicroseconds(PWM_CMD);
+}
+void loop() {
+ if (WiFi.status() == WL_CONNECTED) {
+    if (client.connected()){
+        getControlReference();
+    }
+    else {
+     //Connect to MQTT broker
+        connect();
+    }
+ }
+ else {
+    //check WiFi Connection
+    WiFiCheckConnect();
+    //Connect to MQTT broker
+    connect();
+ }
+updateMotor();
+}

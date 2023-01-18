@@ -23,7 +23,7 @@ WiFiClient net;
 MQTTClient client;
 
 // joystick signal value
-int JSTICK, SPEED;
+int JSTICK;
 
 // time constants
 // unsigned long lastMillis = 0;
@@ -73,8 +73,7 @@ void loop() {
 // Read Analog value
   JSTICK = analogRead(A0);
   JSTICK = constrain(JSTICK, 0, 1023);
-  SPEED = map(JSTICK, 0, 1023, 1100, 1900);
-  client.publish(sub1, String(SPEED));
+  client.publish(sub1, String(JSTICK));
   delay(200);
 }
 //-----------------------------------------------------------------------------------
