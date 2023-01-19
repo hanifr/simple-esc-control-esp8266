@@ -9,6 +9,7 @@
 // #include <SoftwareSerial.h>
 // #include <Wire.h>
 #include <WiFi.h>
+//#include <ESP8266WiFi.h>
 // MQTT Broker
 #include <MQTT.h>
 #define sub1 "TRX/design/IO"
@@ -128,11 +129,11 @@ void checkConnect(){
   }
 }
 //-------------------------------------------------//
-int* getControlReference(){
-  return PWM;
-}
+//int* getControlReference(){
+//  return PWM;
+//}
 void readJoystick() {
-  ref_PWM = getControlReference();
+  int ref_PWM = PWM;
 
   PWM_CMD = map(ref_PWM, 0, 1023, 1100, 1900);
 }
@@ -143,7 +144,7 @@ void updateMotor(){
 void loop() {
  if (WiFi.status() == WL_CONNECTED) {
     if (client.connected()){
-        getControlReference();
+        readJoystick();
     }
     else {
      //Connect to MQTT broker

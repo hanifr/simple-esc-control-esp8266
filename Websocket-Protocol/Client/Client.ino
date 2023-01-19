@@ -1,5 +1,5 @@
 /*
-	Esp32 Websockets Client
+  Esp32 Websockets Client
 */
 
 #include <ArduinoWebsockets.h>
@@ -7,19 +7,20 @@
 // #include <ESP8266WiFi.h>
 #include <Servo.h>
 
-const char* ssid = "ssid"; //Enter SSID
-const char* password = "password"; //Enter Password
-const char* websockets_server_host = "serverip_or_name"; //Enter server adress
+const char* ssid = "SEA-IC"; //Enter SSID
+const char* password = "seaic2022"; //Enter Password
+const char* websockets_server_host = "192.168.1.111"; //Enter server adress
 const uint16_t websockets_server_port = 8888; // Enter server port
 
 using namespace websockets;
 int PWM;
-int* ref_PWM;
+int ref_PWM;
 float PWM_CMD;
 static const int ESC_pin[2] = {2, 14};
 Servo ESC[2]; 
 
 WebsocketsClient client;
+bool wsConnected;
 void setup() {
     Serial.begin(115200);
     for(int i = 0; i < 2; ++i) {
@@ -30,7 +31,11 @@ void setup() {
        }
     }
     delay(2000);
-    // Connect to wifi
+    connectWiFi();
+    connectWebsocket();
+}
+void connectWiFi(){
+        // Connect to wifi
     WiFi.begin(ssid, password);
 
     // Wait some time to connect to wifi
@@ -47,7 +52,6 @@ void setup() {
 
     Serial.println("Connected to Wifi, Connecting to server.");
     // try to connect to Websockets server
-    connectWebsocket();
 }
 void onMessageCallback(WebsocketsMessage message) {
     // const char* msg = (message.data()).toInt();
@@ -98,11 +102,11 @@ bool pollWebsocket(){
   }
 }
 
-int* getControlReference(){
-  return PWM;
-}
+//int* getControlReference(){
+//  return PWM;
+//}
 void readJoystick() {
-  ref_PWM = getControlReference();
+  ref_PWM = PWM;
 
   PWM_CMD = map(ref_PWM, 0, 1023, 1100, 1900);
 }
@@ -125,7 +129,7 @@ void loop() {
     }
   }
   else {
-    connectWifi();
+    connectWiFi();
     connectWebsocket();
   }
   updateMotor();
