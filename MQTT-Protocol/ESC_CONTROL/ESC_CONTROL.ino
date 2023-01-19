@@ -142,20 +142,23 @@ void updateMotor(){
     ESC[1].writeMicroseconds(PWM_CMD);
 }
 void loop() {
- if (WiFi.status() == WL_CONNECTED) {
-    if (client.connected()){
-        readJoystick();
-    }
-    else {
-     //Connect to MQTT broker
-        connect();
-    }
- }
- else {
-    //check WiFi Connection
-    WiFiCheckConnect();
-    //Connect to MQTT broker
-    connect();
- }
+//  if (WiFi.status() == WL_CONNECTED) {
+//     if (client.connected()){
+//         readJoystick();
+//     }
+//     else {
+//      //Connect to MQTT broker
+//         connect();
+//     }
+//  }
+//  else {
+//     //check WiFi Connection
+//     WiFiCheckConnect();
+//     //Connect to MQTT broker
+//     connect();
+//  }
+// updateMotor();
+WiFiCheckConnect();
+checkConnect();
 updateMotor();
 }
