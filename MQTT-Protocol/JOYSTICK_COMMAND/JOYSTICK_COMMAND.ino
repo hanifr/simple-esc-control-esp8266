@@ -14,10 +14,10 @@
 #define sub1 "TRX/design/IO"
 // #define sub2 "TRX/design/req"
 // #define sub3 "TRX/design/res"
-const char ssid[]     = "XXXXXX";              // replace with your WiFi SSID
-const char password[] = "XXXXXXXXX";           // replace with your WiFi password
-const char clientId[] = "XXXX";                // replace with your MQTT Client Id
-const char server[]   = "yourserverMQTTIP";    // replace with your MQTT Broker
+const char ssid[]     = "SEA-IC";              // replace with your WiFi SSID
+const char password[] = "seaic2022";           // replace with your WiFi password
+const char clientId[] = "TXX-1";                // replace with your MQTT Client Id
+const char server[]   = "txio.uitm.edu.my";    // replace with your MQTT Broker
 
 WiFiClient net;
 MQTTClient client;
@@ -26,11 +26,11 @@ MQTTClient client;
 int JSTICK;
 
 // time constants
-// unsigned long lastMillis = 0;
+ unsigned long lastMillis = 0;
 
 
 unsigned long previousMillis = 0;
-// unsigned long interval = 30000;
+ unsigned long interval = 30000;
 
 void initWiFi() {
   WiFi.mode(WIFI_STA);
@@ -74,7 +74,7 @@ void loop() {
   JSTICK = analogRead(A0);
   JSTICK = constrain(JSTICK, 0, 1023);
   client.publish(sub1, String(JSTICK));
-  delay(200);
+  delay(50);
 }
 //-----------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////
