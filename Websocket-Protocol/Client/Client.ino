@@ -5,6 +5,7 @@
 #include <ArduinoWebsockets.h>
 #include <WiFi.h>
 // #include <ESP8266WiFi.h>
+#include <WiFi.h>
 #include <Servo.h>
 
 const char* ssid = "SEA-IC"; //Enter SSID
@@ -35,7 +36,6 @@ void setup() {
     connectWebsocket();
 }
 void connectWiFi(){
-        // Connect to wifi
     WiFi.begin(ssid, password);
 
     // Wait some time to connect to wifi
@@ -51,12 +51,9 @@ void connectWiFi(){
     }
 
     Serial.println("Connected to Wifi, Connecting to server.");
-    // try to connect to Websockets server
 }
 void onMessageCallback(WebsocketsMessage message) {
-    // const char* msg = (message.data()).toInt();
-    PWM = (message.data()).toInt();;
-    // int x = atoi(myData);
+    PWM = message.data().toInt();
 }
 
 void onEventsCallback(WebsocketsEvent event, String data) {
@@ -74,22 +71,18 @@ void onEventsCallback(WebsocketsEvent event, String data) {
 }
 
 void connectWebsocket(){
-  // Connect to server
-  client.connect(websockets_server_host, websockets_server_port, "/");
-
-  Serial.println("Connected to Wifi, Connecting to server.");
-  // try to connect to Websockets server
-  bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-  if(connected) {
-      Serial.println("Connected!");
+    // Connect to server
+    bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+    if(connected) {
+        Serial.println("Connected!");
         PWM = 0;
-  } else {
-      Serial.println("Not Connected!");
-  }
+    } else {
+        Serial.println("Not Connected!");
+    }
 
-  // Setup Callbacks
-  client.onMessage(onMessageCallback);
-  client.onEvent(onEventsCallback);
+    // Setup Callbacks
+    client.onMessage(onMessageCallback);
+    client.onEvent(onEventsCallback);
 }
 
 bool pollWebsocket(){
@@ -102,35 +95,30 @@ bool pollWebsocket(){
   }
 }
 
-//int* getControlReference(){
-//  return PWM;
-//}
 void readJoystick() {
-  ref_PWM = PWM;
+ref_PWM = PWM;
 
-  PWM_CMD = map(ref_PWM, 0, 1023, 1100, 1900);
+PWM_CMD = map(ref_PWM, 0, 1023, 1100, 1900);
 }
 
 void updateMotor(){
-    ESC[0].writeMicroseconds(PWM_CMD);
-    ESC[1].writeMicroseconds(PWM_CMD);
+ESC[0].writeMicroseconds(PWM_CMD);
+ESC[1].writeMicroseconds(PWM_CMD);
 }
 
 void loop() {
-  
-  if (WiFi.status() == WL_CONNECTED) {
-    if (pollWebsocket()) {
+
+if (WiFi.status() == WL_CONNECTED) {
+  if (pollWebsocket()) {
       readJoystick();
-
-
+      updateMotor(); // move this line inside the "if (pollWebsocket())" block so the motor is updated only when new data is received
     }
-    else {
-      connectWebsocket();
-    }
-  }
   else {
-    connectWiFi();
-    connectWebsocket();
+  connectWebsocket();
+    }
   }
-  updateMotor();
+else {
+  connectWiFi();
+  connectWebsocket();
+  }
 }
