@@ -5,16 +5,13 @@
 
   Program: ESP8266 receiver and command two ESCs 
 *********/
-// #include <Arduino.h>
-// #include <SoftwareSerial.h>
-// #include <Wire.h>
 #include <WiFi.h>
 //#include <ESP8266WiFi.h>
 // MQTT Broker
 #include <MQTT.h>
-#define sub1 "TRX/design/IO"
-// #define sub2 "TRX/design/req"
-// #define sub3 "TRX/design/res"
+
+#define sub1 "TRX/design/IO" // MQTT subscription topic
+
 const char ssid[]     = "XXXXXX";              // replace with your WiFi SSID
 const char password[] = "XXXXXXXXX";           // replace with your WiFi password
 const char clientId[] = "XXXX";                // replace with your MQTT Client Id
@@ -28,10 +25,8 @@ MQTTClient client;
 static const int ESC_pin[2] = {2, 14};
 Servo ESC[2]; 
 int PWM_CMD, PWM;
-// time constants
+
 unsigned long lastMillis = 0;
-
-
 unsigned long previousMillis = 0;
 unsigned long interval = 30000;
 
@@ -60,15 +55,17 @@ void WiFiCheckConnect(){
 void setup() {
   // STEP 1: initialize Serial Monitor
   Serial.begin(115200);
+
   // STEP 2 - Initialize Servo elements
- for(int i = 0; i < 2; ++i) {
-       if(!ESC[i].attach(ESC_pin[i], 1000, 2000)) {
-           Serial.print("Servo ");
-           Serial.print(i);
-           Serial.println("attach error");
-       }
-   }
+  for(int i = 0; i < 2; ++i) {
+    if(!ESC[i].attach(ESC_pin[i], 1000, 2000)) {
+      Serial.print("Servo ");
+      Serial.print(i);
+      Serial.println("attach error");
+    }
+  }
   delay(2000);
+
   // STEP 3 - Initialize WiFi connectivity
   initWiFi();
   client.begin(server, net);
@@ -102,13 +99,7 @@ void connect() {
 ////////////////////////////////////////////////////////////////////
 void messageReceived(String &topic, String &payload) {
 //Serial.println("incoming: " + topic + " - " + payload); 
-  Serial.println("Topic: " +  topic);
-  Serial.println("Payload: " +  payload);
-  // Note: Do not use the client in the callback to publish, subscribe or
-  // unsubscribe as it may cause deadlocks when other things arrive while
-  // sending and receiving acknowledgments. Instead, change a global variable,
-  // or push to a queue and handle it in the loop after calling `client.loop()`.
-  String sensorType = topic;
+ String sensorType = topic;
 
   if (sensorType == sub1)
   {
@@ -129,9 +120,6 @@ void checkConnect(){
   }
 }
 //-------------------------------------------------//
-//int* getControlReference(){
-//  return PWM;
-//}
 void readJoystick() {
   int ref_PWM = PWM;
 
@@ -142,22 +130,6 @@ void updateMotor(){
     ESC[1].writeMicroseconds(PWM_CMD);
 }
 void loop() {
-//  if (WiFi.status() == WL_CONNECTED) {
-//     if (client.connected()){
-//         readJoystick();
-//     }
-//     else {
-//      //Connect to MQTT broker
-//         connect();
-//     }
-//  }
-//  else {
-//     //check WiFi Connection
-//     WiFiCheckConnect();
-//     //Connect to MQTT broker
-//     connect();
-//  }
-// updateMotor();
 WiFiCheckConnect();
 checkConnect();
 updateMotor();

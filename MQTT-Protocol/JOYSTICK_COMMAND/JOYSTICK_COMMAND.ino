@@ -17,7 +17,7 @@
 const char ssid[]     = "SEA-IC";              // replace with your WiFi SSID
 const char password[] = "seaic2022";           // replace with your WiFi password
 const char clientId[] = "TXX-1";                // replace with your MQTT Client Id
-const char server[]   = "txio.uitm.edu.my";    // replace with your MQTT Broker
+const char server[]   = "XXXXXXXXX";    // replace with your MQTT Broker
 
 WiFiClient net;
 MQTTClient client;
